@@ -102,67 +102,64 @@ class EmailClient(QMainWindow):
             QMessageBox.critical(self, "Błąd", f"Nie udało się wysłać autorespondera: {str(e)}")
 
     def read_emails(self):
-        self.email_text.setText("")
+        self.email_text.clear()
         try:
-            # łączymy się z serwerem IMAP
             mail = imaplib.IMAP4_SSL('imap.gmail.com')
             mail.login(self.email, self.password)
             mail.select('inbox')
             status, data = mail.search(None, 'ALL')
-            mail_ids = []
 
-            for block in data:
-                mail_ids += block.split()
-            for i in mail_ids[-10:]:
+            mail_ids = data[0].split()[-10:]
+            keyword = self.keyword_field.text().strip()
+            autoresponder_sent = False
+
+            for i in mail_ids:
                 status, data = mail.fetch(i, '(RFC822)')
                 for response_part in data:
-                    if isinstance(response_part, tuple):
-                        message = email.message_from_bytes(response_part[1])
-                        mail_from = decode_header(message['From'])[0][0]
-                        mail_subject = decode_header(message['Subject'])[0][0]
+                    if not isinstance(response_part, tuple):
+                        continue
 
-                        if message.is_multipart():
-                            mail_content = ''
-                            for part in message.get_payload():
-                                if part.get_content_type() == 'text/plain':
-                                    mail_content += part.get_payload(decode=True).decode()
-                        else:
-                            mail_content = message.get_payload(decode=True).decode()
+                    # Tworzymy obiekt wiadomości
+                    message = email.message_from_bytes(response_part[1])
 
-                        # dodajemy filtrację po słowie kluczowym
-                        keyword = self.keyword_field.text()
-                        if keyword and re.search(keyword, mail_content, re.IGNORECASE):
-                            self.email_text.append(f'From: {mail_from}')
-                            self.email_text.append(f'Subject: {mail_subject}')
-                            self.email_text.append(f'Content: {mail_content}')
-                            self.email_text.append('----------------------------------------')
-                        elif not keyword:
-                            self.email_text.append(f'From: {mail_from}')
-                            self.email_text.append(f'Subject: {mail_subject}')
-                            self.email_text.append(f'Content: {mail_content}')
-                            self.email_text.append('----------------------------------------')
+                    # Dekodowanie nagłówków
+                    mail_from_raw = decode_header(message['From'])[0]
+                    mail_from = mail_from_raw[0].decode(mail_from_raw[1]) if isinstance(mail_from_raw[0], bytes) else mail_from_raw[0]
 
-            for i in mail_ids[-10:]:
-                status, data = mail.fetch(i, '(RFC822)')
-                for response_part in data:
-                    if isinstance(response_part, tuple):
-                        message = email.message_from_bytes(response_part[1])
-                        self.last_email_from = decode_header(message['From'])[0][0]  # zapisujemy adres nadawcy
-                        mail_subject = decode_header(message['Subject'])[0][0]
+                    subject_raw = decode_header(message['Subject'])[0]
+                    mail_subject = subject_raw[0].decode(subject_raw[1]) if isinstance(subject_raw[0], bytes) else subject_raw[0]
 
-                        # sprawdzamy autoresponder tylko dla ostatniego otrzymanego e-maila
-                        if i == mail_ids[-1] and mail_content != 'Jestem aktualnie nieobecny. Odpowiem na Twoją wiadomość jak najszybciej.':
-                            self.check_autoresponder()
+                    # Treść wiadomości
+                    if message.is_multipart():
+                        mail_content = ''
+                        for part in message.walk():
+                            if part.get_content_type() == 'text/plain':
+                                mail_content += part.get_payload(decode=True).decode()
+                    else:
+                        mail_content = message.get_payload(decode=True).decode()
 
-            # zapisujemy czas ostatniej aktywności
+                    self.last_email_from = mail_from  # do autorespondera
+
+                    # Filtrowanie i wyświetlanie
+                    if not keyword or re.search(keyword, mail_content, re.IGNORECASE):
+                        self.email_text.append(f'From: {mail_from}')
+                        self.email_text.append(f'Subject: {mail_subject}')
+                        self.email_text.append(f'Content: {mail_content}')
+                        self.email_text.append('-' * 40)
+
+                    # Autoresponder tylko dla ostatniego maila
+                    if i == mail_ids[-1] and 'nieobecny' not in mail_content.lower() and not autoresponder_sent:
+                        self.check_autoresponder()
+                        autoresponder_sent = True
+
             self.last_seen = datetime.now()
-
-            mail.close()
             mail.logout()
+
         except imaplib.IMAP4.error as e:
-            QMessageBox.critical(self, "Błąd", f"Nie udało się połączyć z serwerem IMAP: {str(e)}")
+            QMessageBox.critical(self, "Błąd", f"Błąd IMAP: {str(e)}")
         except Exception as e:
-            QMessageBox.critical(self, "Błąd", f"Wystąpił problem przy odczytywaniu e-maili: {str(e)}")
+            QMessageBox.critical(self, "Błąd", f"Wystąpił problem: {str(e)}")
+
 
     def send_email(self):
         try:
