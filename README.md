@@ -1,8 +1,8 @@
 # Email Client
 
-Ten skrypt implementuje klienta e-mailowego. Umożliwia odczytywanie i wysyłanie e-maili z konta Gmail, a także automatyczne odpowiadanie na e-maile, gdy użytkownik jest nieobecny.
+This script implements an email client. It allows reading and sending emails from a Gmail account, as well as automatically replying to emails when the user is away.
 
-## Wymagania
+## Requirements
 
 * Python 3.10
 * PyQt5
@@ -11,17 +11,17 @@ Ten skrypt implementuje klienta e-mailowego. Umożliwia odczytywanie i wysyłani
 * smtplib
 * email
 
-## Instalacja
+## Installation
 
-1. Sklonuj repozytorium:
+1. Clone the repository:
     ```
     git clone https://github.com/Weisjan/Email-client.git
     ```
 
-2. Uzupełnij plik `config.ini`
-    - email i hasło/token
+2. Fill in the `config.ini` file
+    - email and password/token
 
-## Struktura plików
+## File Structure
 
 ```
 Email-Client
@@ -31,26 +31,26 @@ Email-Client
 ```
 
 | No | File Name | Details |
-|----|------------|---------|
-| 1  | config.ini | Plik konfiguracyjny zawierający dane logowania do konta e-mail |
-| 2  | Client.py | Główny skrypt aplikacji |
-| 3  | Readme.md | Plik Readme |
+|----|-----------|---------|
+| 1  | config.ini | Configuration file containing email account login details |
+| 2  | Client.py | Main application script |
+| 3  | Readme.md | Readme file |
 
-## Opis działania
+## How It Works
 
-Skrypt `Client.py` służy do obsługi e-maili przy użyciu GUI stworzonego w PyQt5.
+The `Client.py` script is used to handle emails through a GUI created with PyQt5.
 
-1. **Konfiguracja**: Skrypt wczytuje konfigurację z pliku `config.ini`, który zawiera informacje o e-mailu i haśle do konta Gmail.
-2. **Interfejs użytkownika**: Tworzony jest interfejs użytkownika z przyciskami do odczytywania i wysyłania e-maili, obszarem tekstowym do wyświetlania e-maili oraz formularzem do wysyłania nowych wiadomości.
-3. **Odczytywanie e-maili**: Po kliknięciu przycisku "Odczytaj e-maile" aplikacja łączy się z serwerem IMAP Gmaila, pobiera i wyświetla ostatnie 10 e-maili. Użytkownik może filtrować e-maile według słowa kluczowego.
-4. **Wysyłanie e-maili**: Po wypełnieniu formularza i kliknięciu przycisku "Wyślij e-mail" aplikacja wysyła wiadomość e-mail za pomocą serwera SMTP Gmaila.
-5. **Autoresponder**: Jeśli użytkownik jest nieobecny przez więcej niż 60 sekund, aplikacja automatycznie odpowiada na ostatnio otrzymanego e-maila z informacją o nieobecności.
+1. **Configuration**: The script reads the configuration from the `config.ini` file, which contains information about the Gmail account's email and password.
+2. **User Interface**: A user interface is created with buttons for reading and sending emails, a text area for displaying emails, and a form for sending new messages.
+3. **Reading Emails**: After clicking the "Read Emails" button, the application connects to Gmail’s IMAP server, fetches, and displays the 10 most recent emails. The user can filter emails by a keyword.
+4. **Sending Emails**: After filling out the form and clicking the "Send Email" button, the application sends the message using Gmail’s SMTP server.
+5. **Autoresponder**: If the user is inactive for more than 60 seconds, the application automatically replies to the most recently received email with an away message.
 
-## Uwagi
+## Notes
 
-- W przypadku błędów połączenia podczas odczytywania lub wysyłania e-maili, aplikacja wyświetli odpowiednie komunikaty błędów.
-- Skrypt automatycznie sprawdza czas ostatniej aktywności użytkownika i wysyła autoresponder w przypadku dłuższej nieaktywności.
+- If connection errors occur during email reading or sending, the application will display appropriate error messages.
+- The script automatically checks the user's last activity time and sends an autoresponder message in case of prolonged inactivity.
 
-## Autor
+## Author
 
 [Jan Weis](https://github.com/Weisjan)
